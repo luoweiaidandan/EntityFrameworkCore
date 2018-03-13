@@ -3247,6 +3247,46 @@ WHERE [b].[IsTwo] IN (1, 0)");
 
         #endregion
 
+        public class MyContext : DbContext
+        {
+            protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            {
+                optionsBuilder.UseSqlServer(@"Server=.;Database=Repro11022;Trusted_Connection=True;MultipleActiveResultSets=True");
+            }
+
+            public DbSet<Entity> Entities { get; set; }
+            public DbSet<Attribute> Attributes { get; set; }
+            public DbSet<Value> Values { get; set; }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder.Entity<Value>().HasKey(v => new { v.EntityId, v.AttributeId });
+            }
+        }
+
+        public class Entity
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public ICollection<Value> Values { get; set; }
+        }
+
+        public class Attribute
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+            public ICollection<Value> Values { get; set; }
+        }
+
+        public class Value
+        {
+            public int EntityId { get; set; }
+            public Entity Entity { get; set; }
+            public int AttributeId { get; set; }
+            public Attribute Attribute { get; set; }
+            public int Data { get; set; }
+        }
+
         private DbContextOptions _options;
 
         private SqlServerTestStore CreateTestStore<TContext>(
